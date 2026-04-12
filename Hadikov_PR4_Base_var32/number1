@@ -1,0 +1,32 @@
+#include <iostream>
+using namespace std;
+
+int main() {
+    int n;
+    cout << "Введите трехзначное число: ";
+    cin >> n;
+    
+    if (n < 100 || n > 999) {
+        cout << "Ошибка: число должно быть трехзначным!" << endl;
+        return 1;
+    }
+    
+    int a = n / 100;          // сотни
+    int b = (n / 10) % 10;    // десятки
+    int c = n % 10;           // единицы
+    
+    bool ok = (a == c) || (a == b && b == c);
+    
+    if (ok) {
+        cout << "Из цифр числа " << n << " можно составить палиндром" << endl;
+        if (a == c) {
+            cout << "Пример: " << a << b << c << endl;
+        } else {
+            cout << "Палиндром: " << a << a << a << endl;
+        }
+    } else {
+        cout << "Из цифр числа " << n << " нельзя составить палиндром" << endl;
+    }
+    
+    return 0;
+}
