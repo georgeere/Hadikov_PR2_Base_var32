@@ -1,0 +1,306 @@
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <map>
+#include <cmath>
+
+using namespace std;
+
+// Глобальные константы
+const int MAX_ROWS = 100;
+const int MAX_COLS = 100;
+
+// ========== Функции проверки ввода ==========
+bool inputInt(int& value) {
+    cin >> value;
+    if (cin.fail()) {
+        cin.clear();
+        cin.ignore(32767, '\n');
+        return false;
+    }
+    cin.ignore(32767, '\n');
+    return true;
+}
+
+int inputNumber(const char* prompt, int minVal, int maxVal) {
+    int value;
+    while (true) {
+        cout << prompt;
+        if (inputInt(value) && value >= minVal && value <= maxVal) {
+            return value;
+        }
+        cout << "Ошибка! Введите число от " << minVal << " до " << maxVal << ": ";
+    }
+}
+
+// ========== ЗАДАНИЕ 1 ==========
+// Найти сумму элементов в чётных столбцах
+// Обращение: как к элементу коллекции
+// Инициализация: при описании произвольными значениями
+// Цикл: for по коллекции
+void task1() {
+    cout << "\n========== ЗАДАНИЕ 1 ==========\n";
+    cout << "Найти сумму элементов в чётных столбцах матрицы\n\n";
+    
+    // Инициализация матрицы при описании произвольными значениями
+    int matrix[4][5] = {
+        {1, 2, 3, 4, 5},
+        {6, 7, 8, 9, 10},
+        {11, 12, 13, 14, 15},
+        {16, 17, 18, 19, 20}
+    };
+    
+    int rows = 4;
+    int cols = 5;
+    
+    // Вывод матрицы
+    cout << "Матрица:\n";
+    for (const auto& row : matrix) {           // for по коллекции (строки)
+        for (int val : row) {                  // for по коллекции (элементы)
+            cout << val << "\t";
+        }
+        cout << endl;
+    }
+    
+    // Подсчёт суммы в чётных столбцах
+    // Чётные столбцы - с индексом 1, 3, ... (2-й, 4-й, ...)
+    int sum = 0;
+    int colIndex = 0;
+    for (const auto& row : matrix) {           // for по коллекции
+        colIndex = 0;
+        for (int val : row) {                  // for по коллекции
+            if (colIndex % 2 == 1) {           // чётный столбец (индекс 1,3,5...)
+                sum += val;
+            }
+            colIndex++;
+        }
+    }
+    
+    cout << "\nСумма элементов в чётных столбцах: " << sum << endl;
+    cout << "================================\n\n";
+}
+
+// ========== ЗАДАНИЕ 2 ==========
+// Поменять местами первую и последнюю строки
+// Обращение: с помощью указателей
+// Инициализация: с клавиатуры
+// Цикл: while по номеру элемента
+void task2() {
+    cout << "\n========== ЗАДАНИЕ 2 ==========\n";
+    cout << "Поменять местами первую и последнюю строки матрицы\n\n";
+    
+    int rows = inputNumber("Введите количество строк (1-10): ", 1, 10);
+    int cols = inputNumber("Введите количество столбцов (1-10): ", 1, 10);
+    
+    // Динамическое выделение памяти (массив указателей)
+    int** matrix = new int*[rows];
+    for (int i = 0; i < rows; i++) {
+        matrix[i] = new int[cols];
+    }
+    
+    // Ввод матрицы с клавиатуры
+    cout << "\nВведите элементы матрицы:\n";
+    int i = 0;
+    while (i < rows) {                         // while по номеру элемента (строки)
+        int j = 0;
+        while (j < cols) {                     // while по номеру элемента (столбцы)
+            cout << "matrix[" << i << "][" << j << "] = ";
+            cin >> *(*(matrix + i) + j);       // обращение через указатели
+            j++;
+        }
+        i++;
+    }
+    
+    // Вывод исходной матрицы
+    cout << "\nИсходная матрица:\n";
+    i = 0;
+    while (i < rows) {
+        int j = 0;
+        while (j < cols) {
+            cout << *(*(matrix + i) + j) << "\t";  // обращение через указатели
+            j++;
+        }
+        cout << endl;
+        i++;
+    }
+    
+    // Меняем местами первую и последнюю строки
+    if (rows > 1) {
+        int* temp = *(matrix + 0);           // указатель на первую строку
+        *(matrix + 0) = *(matrix + rows - 1); // первая = последняя
+        *(matrix + rows - 1) = temp;          // последняя = первая
+    }
+    
+    // Вывод изменённой матрицы
+    cout << "\nМатрица после замены строк:\n";
+    i = 0;
+    while (i < rows) {
+        int j = 0;
+        while (j < cols) {
+            cout << *(*(matrix + i) + j) << "\t";
+            j++;
+        }
+        cout << endl;
+        i++;
+    }
+    
+    // Освобождение памяти
+    for (int i = 0; i < rows; i++) {
+        delete[] *(matrix + i);
+    }
+    delete[] matrix;
+    
+    cout << "================================\n\n";
+}
+
+// ========== ЗАДАНИЕ 3 ==========
+// Поиск наибольшей последовательности одинаковых элементов (комбо)
+// Обращение: по индексам
+// Инициализация: случайные значения
+// Цикл: for по индексам
+void task3() {
+    cout << "\n========== ЗАДАНИЕ 3 ==========\n";
+    cout << "Поиск наибольшей последовательности одинаковых элементов (комбо)\n\n";
+    
+    static bool seeded = false;
+    if (!seeded) {
+        srand(time(0));
+        seeded = true;
+    }
+    
+    int rows = inputNumber("Введите количество строк (2-10): ", 2, 10);
+    int cols = inputNumber("Введите количество столбцов (2-10): ", 2, 10);
+    
+    // Динамическая матрица
+    int** matrix = new int*[rows];
+    for (int i = 0; i < rows; i++) {
+        matrix[i] = new int[cols];
+    }
+    
+    // Заполнение случайными числами от 1 до 5 (для частых совпадений)
+    for (int i = 0; i < rows; i++) {           // for по индексам
+        for (int j = 0; j < cols; j++) {       // for по индексам
+            matrix[i][j] = rand() % 5 + 1;     // числа 1-5
+        }
+    }
+    
+    // Вывод матрицы
+    cout << "\nИгровое поле (матрица):\n";
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            cout << matrix[i][j] << " ";
+        }
+        cout << endl;
+    }
+    
+    // Поиск максимальной последовательности (комбо)
+    int maxCombo = 1;
+    int comboLength = 1;
+    string comboType = "";
+    int comboRow = -1, comboCol = -1;
+    bool horizontal = true;
+    
+    // Поиск по строкам (горизонтальные комбо)
+    for (int i = 0; i < rows; i++) {
+        comboLength = 1;
+        for (int j = 1; j < cols; j++) {
+            if (matrix[i][j] == matrix[i][j - 1]) {
+                comboLength++;
+                if (comboLength > maxCombo) {
+                    maxCombo = comboLength;
+                    comboType = "горизонтальная";
+                    comboRow = i;
+                    comboCol = j - comboLength + 1;
+                    horizontal = true;
+                }
+            } else {
+                comboLength = 1;
+            }
+        }
+    }
+    
+    // Поиск по столбцам (вертикальные комбо)
+    for (int j = 0; j < cols; j++) {
+        comboLength = 1;
+        for (int i = 1; i < rows; i++) {
+            if (matrix[i][j] == matrix[i - 1][j]) {
+                comboLength++;
+                if (comboLength > maxCombo) {
+                    maxCombo = comboLength;
+                    comboType = "вертикальная";
+                    comboRow = i - comboLength + 1;
+                    comboCol = j;
+                    horizontal = false;
+                }
+            } else {
+                comboLength = 1;
+            }
+        }
+    }
+    
+    // Вывод результата
+    cout << "\n=== РЕЗУЛЬТАТ ===\n";
+    if (maxCombo >= 2) {
+        cout << "Наибольшая последовательность (комбо): " << maxCombo << " элементов\n";
+        cout << "Тип: " << comboType << "\n";
+        if (horizontal) {
+            cout << "Строка: " << comboRow << ", столбцы: " << comboCol << " - " << (comboCol + maxCombo - 1) << "\n";
+            cout << "Значение: " << matrix[comboRow][comboCol] << "\n";
+        } else {
+            cout << "Столбец: " << comboCol << ", строки: " << comboRow << " - " << (comboRow + maxCombo - 1) << "\n";
+            cout << "Значение: " << matrix[comboRow][comboCol] << "\n";
+        }
+    } else {
+        cout << "Последовательностей одинаковых элементов не найдено\n";
+    }
+    
+    // Освобождение памяти
+    for (int i = 0; i < rows; i++) {
+        delete[] matrix[i];
+    }
+    delete[] matrix;
+    
+    cout << "================================\n\n";
+}
+
+// ========== ГЛАВНАЯ ФУНКЦИЯ С МЕНЮ ==========
+int main() {
+    setlocale(LC_ALL, "Russian");
+    
+    // Меню с использованием map
+    map<int, void(*)()> menu;
+    menu[1] = task1;
+    menu[2] = task2;
+    menu[3] = task3;
+    
+    int choice;
+    
+    do {
+        cout << "\n========== МЕНЮ ==========\n";
+        cout << "1. Задание 1 - Сумма в чётных столбцах\n";
+        cout << "2. Задание 2 - Поменять местами строки\n";
+        cout << "3. Задание 3 - Поиск комбо-последовательности\n";
+        cout << "0. Выход\n";
+        cout << "==========================\n";
+        cout << "Ваш выбор: ";
+        
+        if (!inputInt(choice)) {
+            cout << "Ошибка ввода!\n";
+            continue;
+        }
+        
+        if (choice == 0) {
+            cout << "Программа завершена.\n";
+            break;
+        }
+        
+        if (menu.find(choice) != menu.end()) {
+            menu[choice]();
+        } else {
+            cout << "Неверный номер! Введите 1, 2, 3 или 0.\n";
+        }
+        
+    } while (true);
+    
+    return 0;
+}
