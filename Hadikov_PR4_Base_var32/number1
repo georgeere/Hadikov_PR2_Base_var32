@@ -1,32 +1,429 @@
+// Surname_PR6_string
 #include <iostream>
-using namespace std;
+#include <string>
+#include <cstring>
+#include <map>
+#include <algorithm>
+
+// Проверка корректности ввода числа
+bool UserInput(std::string input) {
+    if (input.empty()) return false;
+    for (size_t i = 0; i < input.length(); i++) {
+        if (input[i] < '0' || input[i] > '9') return false;
+    }
+    return true;
+}
+
+// Ввод числа с повторением запроса до корректного ввода
+int EnterNumber(std::string label) {
+    std::string raw_input;
+    std::cout << label;
+    std::getline(std::cin, raw_input);
+    while (!UserInput(raw_input)) {
+        std::cout << label;
+        std::getline(std::cin, raw_input);
+    }
+    return std::stoi(raw_input);
+}
+
+// Проверка корректности ввода непустой строки типа string
+bool UserInputStr(std::string input) {
+    if (input.empty()) return false;
+    bool hasNonSpace = false;
+    for (size_t i = 0; i < input.length(); i++) {
+        if (input[i] != ' ') {
+            hasNonSpace = true;
+            break;
+        }
+    }
+    return hasNonSpace;
+}
+
+// Ввод строки с повторением запроса до корректного ввода
+std::string EnterString(std::string label) {
+    std::string raw_input;
+    std::cout << label;
+    std::getline(std::cin, raw_input);
+    while (!UserInputStr(raw_input)) {
+        std::cout << label;
+        std::getline(std::cin, raw_input);
+    }
+    return raw_input;
+}
+
+// Проверка корректности ввода непустой строки типа char[]
+bool UserInputArrChar(const char str[]) {
+    const char* p = str;
+    while (*p != '\0')
+        if (*p++ != ' ') return true;
+    return false;
+}
+
+// Ввод строки char[] с повторением запроса до корректного ввода
+void EnterArrChar(const char label[], char output[], size_t size) {
+    std::cout << label;
+    std::cin.getline(output, size);
+    while (!UserInputArrChar(output)) {
+        std::cout << label;
+        std::cin.getline(output, size);
+    }
+}
+
+// 1
+void problem1() {
+    std::cout << "\n Ex 1\n";
+    const int MAX = 256;
+    char s[MAX];
+    std::cin.ignore();
+    std::cout << "Введите строку: ";
+    std::cin.getline(s, MAX);
+
+    char* p = s;
+    int maxLen = 0;
+    int curLen = 0;
+    char* maxStart = s;
+    char* curStart = s;
+
+    // Массив для отметки встречавшихся символов (ASCII 128)
+    bool seen[128];
+
+    while (*p != '\0') {
+        // Очистка seen для новой подстроки
+        for (int i = 0; i < 128; i++) seen[i] = false;
+
+        char* q = p;
+        curLen = 0;
+        curStart = p;
+
+        while (*q != '\0') {
+            if (seen[(unsigned char)*q]) {
+                break;
+            }
+            seen[(unsigned char)*q] = true;
+            curLen++;
+            q++;
+        }
+
+        if (curLen > maxLen) {
+            maxLen = curLen;
+            maxStart = curStart;
+        }
+        p++;
+    }
+
+    std::cout << "Длина самой длинной подстроки без повторяющихся символов: " << maxLen << std::endl;
+    std::cout << "Подстрока: ";
+    for (int i = 0; i < maxLen; i++) {
+        std::cout << *(maxStart + i);
+    }
+    std::cout << std::endl;
+}
+
+// 2
+void problem2() {
+    std::cout << "\n Ex 2\n";
+    std::string s;
+    std::cin.ignore();
+    s = EnterString("Введите строку: ");
+
+    // Подсчёт частоты каждой буквы
+    int freq[26] = {0};
+    std::string letters;
+    std::string others;
+
+    for (size_t i = 0; i < s.length(); i++) {
+        char c = s[i];
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+            char lower = c;
+            if (c >= 'A' && c <= 'Z') lower = c + 32;
+            freq[lower - 'a']++;
+            letters += c;
+        }
+        else {
+            others += c;
+        }
+    }
+
+    std::string result = "";
+    for (size_t i = 0; i < s.length(); i++) {
+        char c = s[i];
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+            char lower = c;
+            if (c >= 'A' && c <= 'Z') lower = c + 32;
+            int count = freq[lower - 'a'];
+            result += c;
+            for (int j = 1; j < count; j++) {
+                result += c;
+            }
+        }
+        else {
+            result += c;
+        }
+    }
+
+    std::cout << "Преобразованная строка: " << result << std::endl;
+}
+
+// 3
+void problem3() {
+    std::cout << "\nEx3\n";
+    const int MAX = 256;
+    char s[MAX];
+    std::cin.ignore();
+    std::cout << "Введите строку: ";
+    std::cin.getline(s, MAX);
+
+    int len = 0;
+    while (s[len] != '\0') len++;
+
+    if (len % 2 != 0) {
+        std::cout << "нет" << std::endl;
+        return;
+    }
+
+    int half = len / 2;
+
+    // Подсчёт символов в первой половине
+    int count1[128] = {0};
+    for (int i = 0; i < half; i++) {
+        count1[(unsigned char)s[i]]++;
+    }
+
+    // Подсчёт символов во второй половине
+    int count2[128] = {0};
+    for (int i = half; i < len; i++) {
+        count2[(unsigned char)s[i]]++;
+    }
+
+    // Сравнение
+    for (int i = 0; i < 128; i++) {
+        if (count1[i] != count2[i]) {
+            std::cout << "нет" << std::endl;
+            return;
+        }
+    }
+
+    std::cout << "да" << std::endl;
+}
+
+// 4
+void problem4() {
+    std::cout << "\nЗадание 4\n";
+    std::string s;
+    std::cin.ignore();
+    s = EnterString("Введите строку: ");
+
+    // Приведение к нижнему регистру для сравнения
+    std::string lower = s;
+    for (size_t i = 0; i < lower.length(); i++) {
+        if (lower[i] >= 'A' && lower[i] <= 'Z') {
+            lower[i] = lower[i] + 32;
+        }
+    }
+
+    // Сортировка символов первого слова
+    size_t n = s.length();
+    size_t i = 0;
+    while (i < n && s[i] == ' ') i++;
+    size_t start1 = i;
+    while (i < n && s[i] != ' ') i++;
+    std::string word1 = s.substr(start1, i - start1);
+
+    // Сортированная версия первого слова в нижнем регистре
+    std::string sorted1 = lower.substr(start1, i - start1);
+    std::sort(sorted1.begin(), sorted1.end());
+
+    std::cout << "Слова, являющиеся анаграммами друг друга (включая первое):\n";
+
+    bool found = false;
+    while (i < n) {
+        while (i < n && s[i] == ' ') i++;
+        if (i >= n) break;
+        size_t start = i;
+        while (i < n && s[i] != ' ') i++;
+        std::string word = s.substr(start, i - start);
+        std::string sortedWord = lower.substr(start, i - start);
+        std::sort(sortedWord.begin(), sortedWord.end());
+
+        if (sortedWord == sorted1 && word.length() == word1.length()) {
+            std::cout << word << std::endl;
+            found = true;
+        }
+    }
+
+    if (!found) {
+        std::cout << "Нет анаграмм первого слова" << std::endl;
+    }
+}
+
+// 5
+void problem5() {
+    std::cout << "\nЗадание 5\n";
+    const int MAX = 512;
+    char s[MAX];
+    std::cin.ignore();
+    EnterArrChar("Введите строку: ", s, MAX);
+
+    char temp[MAX];
+    strcpy(temp, s);
+
+    // Находим первое слово
+    char* firstWord = strtok(temp, " ");
+    if (firstWord == NULL) {
+        std::cout << "Преобразованная строка:\n" << s << std::endl;
+        return;
+    }
+
+    // Сортируем первое слово в нижнем регистре для сравнения
+    char sortedFirst[128];
+    strcpy(sortedFirst, firstWord);
+    int lenFirst = strlen(sortedFirst);
+    for (int i = 0; i < lenFirst; i++) {
+        if (sortedFirst[i] >= 'A' && sortedFirst[i] <= 'Z') {
+            sortedFirst[i] += 32;
+        }
+    }
+    for (int i = 0; i < lenFirst - 1; i++) {
+        for (int j = i + 1; j < lenFirst; j++) {
+            if (sortedFirst[i] > sortedFirst[j]) {
+                char tmp = sortedFirst[i];
+                sortedFirst[i] = sortedFirst[j];
+                sortedFirst[j] = tmp;
+            }
+        }
+    }
+
+    // Строим результирующую строку
+    char result[MAX] = "";
+    char original[MAX];
+    strcpy(original, s);
+
+    char* word = strtok(original, " ");
+    bool isFirst = true;
+    bool firstWordSkipped = false;
+
+    while (word != NULL) {
+        // Сортируем текущее слово в нижнем регистре
+        char sortedWord[128];
+        strcpy(sortedWord, word);
+        int lenWord = strlen(sortedWord);
+        for (int i = 0; i < lenWord; i++) {
+            if (sortedWord[i] >= 'A' && sortedWord[i] <= 'Z') {
+                sortedWord[i] += 32;
+            }
+        }
+        for (int i = 0; i < lenWord - 1; i++) {
+            for (int j = i + 1; j < lenWord; j++) {
+                if (sortedWord[i] > sortedWord[j]) {
+                    char tmp = sortedWord[i];
+                    sortedWord[i] = sortedWord[j];
+                    sortedWord[j] = tmp;
+                }
+            }
+        }
+
+        // Пропускаем анаграммы первого слова
+        if (strcmp(sortedWord, sortedFirst) == 0 && lenWord == lenFirst) {
+            firstWordSkipped = true;
+        }
+        else {
+            if (!isFirst) {
+                strcat(result, " ");
+            }
+            strcat(result, word);
+            isFirst = false;
+        }
+
+        word = strtok(NULL, " ");
+    }
+
+    std::cout << "Преобразованная строка:\n" << result << std::endl;
+}
+
+// 6
+void problem6() {
+    std::cout << "\nЗадание 6\n";
+    std::string s;
+    std::cin.ignore();
+    s = EnterString("Введите строку: ");
+
+    int k = EnterNumber("Введите k: ");
+
+    bool inWord = false;
+    size_t wordStart = 0;
+    std::string result = s;
+    size_t offset = 0; // Смещение из-за изменения длины
+
+    for (size_t i = 0; i <= s.length(); i++) {
+        if (i < s.length() && s[i] != ' ') {
+            if (!inWord) {
+                inWord = true;
+                wordStart = i;
+            }
+        }
+        else {
+            if (inWord) {
+                inWord = false;
+                size_t wordLen = i - wordStart;
+                if (wordLen > 0 && k > 0) {
+                    std::string word = s.substr(wordStart, wordLen);
+                    int shift = k % wordLen;
+                    if (shift > 0) {
+                        std::string part1 = word.substr(wordLen - shift, shift);
+                        std::string part2 = word.substr(0, wordLen - shift);
+                        std::string newWord = part1 + part2;
+                        result.replace(wordStart + offset, wordLen, newWord);
+                        offset += (newWord.length() - wordLen);
+                    }
+                }
+            }
+        }
+    }
+
+    std::cout << "Преобразованная строка:\n" << result << std::endl;
+}
+
+struct MenuItem {
+    std::string title;
+    void (*action)();
+};
 
 int main() {
-    int n;
-    cout << "Введите трехзначное число: ";
-    cin >> n;
-    
-    if (n < 100 || n > 999) {
-        cout << "Ошибка: число должно быть трехзначным!" << endl;
-        return 1;
-    }
-    
-    int a = n / 100;          // сотни
-    int b = (n / 10) % 10;    // десятки
-    int c = n % 10;           // единицы
-    
-    bool ok = (a == c) || (a == b && b == c);
-    
-    if (ok) {
-        cout << "Из цифр числа " << n << " можно составить палиндром" << endl;
-        if (a == c) {
-            cout << "Пример: " << a << b << c << endl;
-        } else {
-            cout << "Палиндром: " << a << a << a << endl;
+    setlocale(LC_ALL, "Russian");
+    srand(time(0));
+
+    std::map<int, MenuItem> menu = {
+        {1, {"Задание 1", problem1}},
+        {2, {"Задание 2", problem2}},
+        {3, {"Задание 3", problem3}},
+        {4, {"Задание 4", problem4}},
+        {5, {"Задание 5", problem5}},
+        {6, {"Задание 6", problem6}},
+    };
+
+    int choice = 0;
+
+    while (true) {
+        std::cout << "\nМеню:\n";
+        for (const auto& item : menu) {
+            std::cout << "Task " << item.first << " . " << item.second.title << std::endl;
         }
-    } else {
-        cout << "Из цифр числа " << n << " нельзя составить палиндром" << endl;
+        std::cout << "0. Выход\n";
+
+        choice = EnterNumber("Введите номер пункта: ");
+
+        if (choice == 0) {
+            std::cout << "© 2026 Surname\n";
+            break;
+        }
+
+        if (menu.find(choice) != menu.end()) {
+            menu[choice].action();
+        }
+        else {
+            std::cout << "Некорректный ввод.\n";
+        }
     }
-    
+
     return 0;
-}
+} 
